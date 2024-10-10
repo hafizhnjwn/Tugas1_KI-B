@@ -134,10 +134,6 @@ def hex_to_bin(hex_string):
 def bin_to_hex(bin_string):
     return hex(int(bin_string, 2))[2:].upper().zfill(16)
 
-# Helper function to convert decimal to binary
-def dec_to_bin(decimal_string):
-    return bin(int(decimal_string))[2:].zfill(64)
-
 # Convert text to binary (ensures 64-bit blocks)
 def text_to_bin(text):
     return ''.join(format(ord(c), '08b') for c in text).ljust((len(text) + 7) // 8 * 8 * 8, '0')
@@ -235,11 +231,10 @@ def unpad_text(text):
 
 # DES encryption on a file
 def des_encrypt_file(key, input_file, output_file):
-    key_64bit = hex_to_bin(key) if len(key) == 16 else dec_to_bin(key)
+    key_64bit = hex_to_bin(key)
     round_keys = key_schedule(key_64bit)  # Generate round keys
 
-    with open(input_file, 'r') as f:
-        plaintext = f.read()
+    plaintext = input_file
 
     padded_plaintext = pad_text(plaintext)
     binary_plaintext = text_to_bin(padded_plaintext)
@@ -254,15 +249,13 @@ def des_encrypt_file(key, input_file, output_file):
     with open(output_file, 'w') as f:
         f.write(cipher_hex)
 
-    print(f"Encryption complete. Ciphertext written to {output_file}")
+    print(f"Encrypt complete")
 
 # DES decryption on a file
 def des_decrypt_file(key, input_file, output_file):
-    key_64bit = hex_to_bin(key) if len(key) == 16 else dec_to_bin(key)
+    key_64bit = hex_to_bin(key)
     round_keys = key_schedule(key_64bit)  # Generate round keys
-
-    with open(input_file, 'r') as f:
-        cipher_hex = f.read().strip()
+    cipher_hex = input_file
 
     cipher_binary = hex_to_bin(cipher_hex)  # Convert hex to binary
 
@@ -277,67 +270,35 @@ def des_decrypt_file(key, input_file, output_file):
     with open(output_file, 'w') as f:
         f.write(unpadded_text)
 
-    print(f"Decryption complete. Plaintext written to {output_file}")
+    print(f"Decrypt complete.")
 
 
 def get_mode():
     while True:
-        print("\nSelect Operation:")
         print("1. Encrypt")
         print("2. Decrypt")
-        mode = input("Please choose an option (1 or 2): ").strip()
+        mode = input("Choose 1 or 2: ").strip()
         if mode in ['1', '2']:
             return mode
         print("Invalid input. Please enter '1' for Encrypt or '2' for Decrypt.")
 
-def get_key_format():
+def get_key():
     while True:
-        print("\nSelect Key Format:")
-        print("1. Hexadecimal")
-        print("2. Decimal")
-        key_format = input("Please choose an option (1 or 2): ").strip()
-        if key_format in ['1', '2']:
-            return key_format
-        print("Invalid input. Please enter '1' for Hexadecimal or '2' for Decimal.")
-
-def get_key(key_format):
-    while True:
-        key = input(f"\nEnter 64-bit {'hexadecimal' if key_format == '1' else 'decimal'} key: ").strip()
-        if len(key) == 16 and key_format == '1':  # 16 hex digits for 64 bits
+        key = input(f"\nEnter 64-bit 'hexadecimal' key: ").strip()
+        if len(key) == 16:  # 16 hex digits for 64 bits
             return key
-        elif len(key) == 20 and key_format == '2':  # 64-bit decimal key should have 20 digits max
-            return key
-        print("Invalid key length. Please enter a valid 64-bit key.")
-
-def list_files():
-    print("\nAvailable files in the current directory:")
-    files = [f for f in os.listdir('.') if os.path.isfile(f)]
-    for index, file in enumerate(files, start=1):
-        print(f"{index}. {file}")
-    return files
-
-def get_file_names():
-    files = list_files()
-    print("\nEnter the number of the file you want to use, or type the full file name:")
-    choice = input("Your choice: ").strip()
-    
-    if choice.isdigit() and 1 <= int(choice) <= len(files):
-        input_file = files[int(choice) - 1]
-    else:
-        input_file = choice  # User entered a file name
-
-    output_file = input("Enter output file name: ").strip()
-    return input_file, output_file
+        print("Invalid key length")
 
 if __name__ == '__main__':
     mode = get_mode()
-    key_format = get_key_format()
-    key = get_key(key_format)
-    input_file, output_file = get_file_names()
+    key = get_key()
+    output_file = input("Enter output file name: ").strip()
 
     if mode == '1':
-        des_encrypt_file(key, input_file, output_file)
+        input_text=input("Input Plaintext: ").strip()
+        des_encrypt_file(key, input_text, output_file)
     elif mode == '2':
-        des_decrypt_file(key, input_file, output_file)
+        input_text=input("Input Ciphertext: ").strip()
+        des_decrypt_file(key, input_text, output_file)
 
     print("\nOperation completed successfully.")
